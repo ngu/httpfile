@@ -262,6 +262,9 @@ public class HttpFileParser {
           }
           builder.acceptRequest();
           return new Next(null, new RequestSeparator());
+        } else if (Token.matchesRequestSeparator(line) && allParts.isEmpty() && bodyLines.isEmpty()) {
+            builder.acceptRequest();
+            return new Next(line, new RequestSeparator());
         } else if (Token.ResourceRefLine.matches(line)) {
           consumeBodyLines();
           allParts.add(new Part.ResourceRef(Token.ResourceRefLine.of(line).path()));
@@ -281,11 +284,11 @@ public class HttpFileParser {
     Builder builder = new Builder();
     Next next = new Next(null, new State.RequestOrSeparator());
     while (true) {
-      System.out.println(next);
       String line = next.line();
       if (line == null && lines.hasNext()) {
         line = lines.next();
       }
+      System.out.println(next + ": " + line);
       next = next.state().next(line, builder);
       if (next == null) {
         break;

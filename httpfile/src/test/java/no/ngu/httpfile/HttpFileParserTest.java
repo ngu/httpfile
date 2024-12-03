@@ -34,7 +34,7 @@ public class HttpFileParserTest {
             new HttpFile.Request(HttpFile.HttpMethod.GET, "http://yr.no/", List.of(), null)),
         parser.parse("""
             GET http://vg.no/
-
+            
             ###
             GET http://yr.no/
             """));
