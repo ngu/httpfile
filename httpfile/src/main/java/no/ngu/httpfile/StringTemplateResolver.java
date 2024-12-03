@@ -11,6 +11,7 @@ public class StringTemplateResolver {
 
   private StringValueProvider stringValueProvider;
   private InputStreamProvider inputStreamProvider;
+  private MacroValueProvider macroValueProvider;
 
   public StringTemplateResolver() {}
 
@@ -18,6 +19,7 @@ public class StringTemplateResolver {
       InputStreamProvider inputStreamProvider) {
     this.stringValueProvider = stringValueProvider;
     this.inputStreamProvider = inputStreamProvider;
+    this.macroValueProvider = new MacroValueProvider(inputStreamProvider);
   }
 
   public void setStringValueProvider(StringValueProvider stringValueProvider) {
@@ -26,6 +28,7 @@ public class StringTemplateResolver {
 
   public void setInputStreamProvider(InputStreamProvider inputStreamProvider) {
     this.inputStreamProvider = inputStreamProvider;
+    this.macroValueProvider = new MacroValueProvider(inputStreamProvider);
   }
 
   public void forEach(HttpFile.StringTemplate stringTemplate,
@@ -34,15 +37,9 @@ public class StringTemplateResolver {
       var s = switch (stringTemplate.parts().get(index)) {
         case Part.Constant constant -> constant.value();
         case Part.VariableRef(var name) -> stringValueProvider.getStringValue(name);
-        case Part.FunctionCall(var name, var args) -> {
-          Function<List<String>, String> function = null;
+        case Part.MacroCall(var macro, var args) -> {
           try {
-            function = Functions.valueOf(name);
-          } catch (IllegalArgumentException iae) {
-            yield "Unknown function: " + name;
-          }
-          try {
-            yield function.apply(args);
+            yield macroValueProvider.applyMacro(macro, args);
           } catch (Exception e) {
             yield e.getMessage();
           }

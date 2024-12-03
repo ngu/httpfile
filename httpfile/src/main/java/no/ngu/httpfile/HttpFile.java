@@ -38,9 +38,9 @@ public interface HttpFile {
       public record VariableRef(String name) implements Part {
       }
 
-      public record FunctionCall(String name, List<String> args) implements Part {
-        public FunctionCall(String name, String... args) {
-          this(name, List.of(args));
+      public record MacroCall(Macro macro, List<String> args) implements Part {
+        public MacroCall(Macro macro, String... args) {
+          this(macro, List.of(args));
         }
       }
 
@@ -74,7 +74,7 @@ public interface HttpFile {
             String name = s.substring(varStart + 3, nameEnd);
             String[] args = (nameEnd < varEnd ? s.substring(nameEnd, varEnd).trim().split(" +")
                 : new String[0]);
-            parts.add(new Part.FunctionCall(name, args));
+            parts.add(new Part.MacroCall(Macro.valueOf(name), args));
           } else {
             parts.add(new Part.VariableRef(s.substring(varStart + 2, varEnd)));
           }

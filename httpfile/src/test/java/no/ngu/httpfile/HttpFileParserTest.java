@@ -34,7 +34,7 @@ public class HttpFileParserTest {
             new HttpFile.Request(HttpFile.HttpMethod.GET, "http://yr.no/", List.of(), null)),
         parser.parse("""
             GET http://vg.no/
-            
+
             ###
             GET http://yr.no/
             """));
@@ -46,7 +46,7 @@ public class HttpFileParserTest {
         new HttpFile.Request(List.of(), HttpFile.HttpMethod.GET,
             new HttpFile.StringTemplate(new Part.Constant("http://vg.no/"),
                 new Part.VariableRef("section"), new Part.Constant("/"),
-                new Part.FunctionCall("guid")),
+                new Part.MacroCall(Macro.guid)),
             null, List.of(), null)),
         parser.parse("""
             @section=sport
