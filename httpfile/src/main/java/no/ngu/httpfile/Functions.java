@@ -50,7 +50,7 @@ public enum Functions implements Function<List<String>, String> {
       int offset = args.size() >= 2 ? Integer.parseInt(args.get(1)) : 0;
       TemporalUnit unit = getTemporalUnit(args.size() >= 3 ? args.get(2) : null);
       var datetime = ZonedDateTime.now().plus(offset, unit);
-      return formatter.format(datetime);
+      return formatter.format(datetime.withNano(0));
     }
   },
   // {{$localDatetime rfc1123|iso8601 [offset option]}}
@@ -59,8 +59,9 @@ public enum Functions implements Function<List<String>, String> {
     public String apply(List<String> args) {
       DateTimeFormatter formatter = getDateTimeFormatter(args.size() >= 1 ? args.get(0) : null);
       int offset = args.size() >= 2 ? Integer.parseInt(args.get(1)) : 0;
-      var datetime = LocalDateTime.now().plusSeconds(offset);
-      return formatter.format(datetime);
+      TemporalUnit unit = getTemporalUnit(args.size() >= 3 ? args.get(2) : null);
+      var datetime = LocalDateTime.now().plus(offset, unit);
+      return formatter.format(datetime.withNano(0));
     }
   },
   // {{$processEnv [%]envVarName}}
