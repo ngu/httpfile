@@ -1,0 +1,12 @@
+# @name test1
+POST https://httpbin.org/post?q=hello
+
+there
+
+###
+
+@test2body={{test1.response.body.$.args.q}}
+# @name test2
+POST https://httpbin.org/post?q=helloquery
+
+{{test2body}}

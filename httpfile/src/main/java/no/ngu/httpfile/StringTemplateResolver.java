@@ -1,9 +1,7 @@
 package no.ngu.httpfile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import no.ngu.httpfile.HttpFile.Model;
 import no.ngu.httpfile.HttpFile.StringTemplate.Part;
 

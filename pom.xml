@@ -14,7 +14,7 @@
         <module>httpfile</module>
     </modules>
 
-  
+
     <build>
         <pluginManagement>
             <plugins>

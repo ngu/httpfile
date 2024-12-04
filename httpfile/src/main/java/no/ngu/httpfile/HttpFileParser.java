@@ -159,26 +159,33 @@ public class HttpFileParser {
   sealed interface State {
     Next next(String line, Builder builder);
 
-    record RequestSeparator() implements State {
+    record RequestSeparator(boolean expectSeparator) implements State {
       @Override
       public Next next(String line, Builder builder) {
         if (Token.matchesEnd(line)) {
           return null;
+        } else if (Token.matchesBlank(line)) {
+          return new Next(null, this);
         } else if (Token.matchesRequestSeparator(line)) {
-          return new Next(null, new RequestFeature());
+          return new Next(null, new RequestSeparator(false));
         }
-        throw new IllegalStateException("Expected RequestSeparator, was '" + line + "'");
+        if (expectSeparator) {
+          throw new IllegalStateException("Expected RequestSeparator, was '" + line + "'");
+        } else {
+          return new Next(line, new RequestFeature());
+        }
       }
     }
 
     record RequestOrSeparator() implements State {
       @Override
       public Next next(String line, Builder builder) {
-        var nextState = new RequestFeature();
-        if (Token.matchesRequestSeparator(line)) {
-          return new Next(null, nextState);
+        if (Token.matchesBlank(line)) {
+          return new Next(null, this);
+        } else if (Token.matchesRequestSeparator(line)) {
+          return new Next(null, new RequestFeature());
         }
-        return new Next(line, nextState);
+        return new Next(line, new RequestFeature());
       }
     }
 
@@ -189,7 +196,9 @@ public class HttpFileParser {
 
       @Override
       public Next next(String line, Builder builder) {
-        if (Token.PropertyLine.matches(line)) {
+        if (Token.matchesBlank(line)) {
+          return new Next(null, new RequestLine());
+        } else if (Token.PropertyLine.matches(line)) {
           properties.add(Token.PropertyLine.of(line));
           return new Next(null, this);
         } else if (Token.VariableLine.matches(line)) {
@@ -261,10 +270,10 @@ public class HttpFileParser {
             builder.body = new Body(null, new HttpFile.StringTemplate(allParts));
           }
           builder.acceptRequest();
-          return new Next(null, new RequestSeparator());
+          return new Next(null, new RequestSeparator(true));
         } else if (Token.matchesRequestSeparator(line) && allParts.isEmpty() && bodyLines.isEmpty()) {
             builder.acceptRequest();
-            return new Next(line, new RequestSeparator());
+            return new Next(line, new RequestSeparator(true));
         } else if (Token.ResourceRefLine.matches(line)) {
           consumeBodyLines();
           allParts.add(new Part.ResourceRef(Token.ResourceRefLine.of(line).path()));
