@@ -26,14 +26,14 @@ public interface StringValueProvider {
    */
   public record Variables(
       Iterable<Variable> variables,
-      StringTemplateResolver templateValueProvider
+      StringTemplateResolver templateValueResolver
   ) implements StringValueProvider {
 
     @Override
     public String getStringValue(String name) {
       for (var variable : variables) {
         if (name.equals(variable.name())) {
-          return templateValueProvider.toString(variable.value());
+          return templateValueResolver.toString(variable.value());
         }
       }
       return null;

@@ -68,7 +68,8 @@ public class StringTemplateResolver {
           }
         }
         case Part.ResourceRef resourceRef -> {
-          try (var inputStream = inputStreamProvider.getInputStream(resourceRef.resource())) {
+          var resource = toString(resourceRef.resource());
+          try (var inputStream = inputStreamProvider.getInputStream(resource)) {
             if (inputStream == null) {
               yield "Resource '" + resourceRef.resource() + "' not found";
             } else {

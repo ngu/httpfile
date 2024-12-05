@@ -77,6 +77,7 @@ public class HttpFileParser {
     }
 
     record RequestLine(HttpMethod verb, String target, String version) implements Token {
+
       static boolean matches(String line) {
         int pos1 = line.indexOf(" ");
         if (pos1 > 0) {
@@ -116,6 +117,7 @@ public class HttpFileParser {
     }
 
     record HeaderLine(String name, String value) implements Token {
+
       static boolean matches(String line) {
         int pos = line.indexOf(":");
         return pos > 0 && line.indexOf(":", pos + 1) < 0;
@@ -128,6 +130,7 @@ public class HttpFileParser {
     }
 
     record ResourceRefLine(String path) implements Token {
+
       static boolean matches(String line) {
         return line.startsWith("< ");
       }
@@ -253,8 +256,10 @@ public class HttpFileParser {
         if (current != null) {
           headers.add(current);
         }
-        builder.headers = headers.stream().map(headerLine -> new Header(headerLine.name(),
-            HttpFile.StringTemplate.of(headerLine.value()))).toList();
+        builder.headers = headers.stream().map(headerLine -> new Header(
+            HttpFile.StringTemplate.of(headerLine.name()),
+            HttpFile.StringTemplate.of(headerLine.value()
+          ))).toList();
         return new Next(null, new BodyLines(new ArrayList<>(), new StringBuilder()));
       }
     }
@@ -282,7 +287,8 @@ public class HttpFileParser {
           return new Next(line, new RequestSeparator(true));
         } else if (Token.ResourceRefLine.matches(line)) {
           consumeBodyLines();
-          allParts.add(new Part.ResourceRef(Token.ResourceRefLine.of(line).path()));
+          var resource = HttpFile.StringTemplate.of(Token.ResourceRefLine.of(line).path());
+          allParts.add(new Part.ResourceRef(resource));
           return new Next(null, this);
         } else {
           if (bodyLines.length() > 0) {

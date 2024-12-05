@@ -150,7 +150,10 @@ public class HttpFileClient implements AutoCloseable {
       StringTemplateResolver templateResolver) {
     var builder = HttpRequest.newBuilder(URI.create(templateResolver.toString(request.target())));
     for (var header : request.headers()) {
-      builder.header(header.name(), templateResolver.toString(header.value()));
+      builder.header(
+          templateResolver.toString(header.name()),
+          templateResolver.toString(header.value())
+      );
     }
     var bodyContent = (request.body() != null
         ? templateResolver.toString(request.body().content())

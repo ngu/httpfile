@@ -86,7 +86,16 @@ public interface HttpFile {
       /**
        * A resource reference part. Only used in body content.
        */
-      public record ResourceRef(String resource) implements Part {
+      public record ResourceRef(HttpFile.StringTemplate resource) implements Part {
+
+        /**
+         * Initializes with the given resource.
+         *
+         * @param resource the resource
+         */
+        public ResourceRef(String resource) {
+          this(HttpFile.StringTemplate.of(resource));
+        }
       }
     }
 
@@ -113,7 +122,9 @@ public interface HttpFile {
             throw new IllegalArgumentException("{{ without }}");
           }
           // add intermediate static part
-          parts.add(new Part.Constant(s.substring(pos, varStart)));
+          if (varStart > pos) {
+            parts.add(new Part.Constant(s.substring(pos, varStart)));
+          }
           // add function or variable part
           if (s.charAt(varStart + 2) == '$') {
             var nameEnd = s.indexOf(' ', varStart + 3);
@@ -264,7 +275,7 @@ public interface HttpFile {
   /**
    * An http header.
    */
-  public record Header(String name, StringTemplate value) {
+  public record Header(StringTemplate name, StringTemplate value) {
 
     /**
      * Initializes with the given name and value.
@@ -273,7 +284,7 @@ public interface HttpFile {
      * @param value the value
      */
     public Header(String name, String value) {
-      this(name, StringTemplate.of(value));
+      this(StringTemplate.of(name), StringTemplate.of(value));
     }
   }
 
