@@ -151,8 +151,14 @@ public class HttpFileParser {
     Body body;
 
     public void acceptRequest() {
-      Request request = new Request(properties, requestLine.verb(),
-          HttpFile.StringTemplate.of(requestLine.target()), requestLine.version(), headers, body);
+      Request request = new Request(
+          properties,
+          requestLine.verb(),
+          HttpFile.StringTemplate.of(requestLine.target()),
+          HttpFile.StringTemplate.of(requestLine.version()),
+          headers,
+          body
+      );
       requests.add(request);
       properties = null;
       requestLine = null;

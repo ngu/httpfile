@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.HashMap;
 import java.util.List;
@@ -149,6 +150,11 @@ public class HttpFileClient implements AutoCloseable {
   private Map<String, Object> performRequest(HttpFile.Request request,
       StringTemplateResolver templateResolver) {
     var builder = HttpRequest.newBuilder(URI.create(templateResolver.toString(request.target())));
+    if (request.version() != null) {
+      var versionString = templateResolver.toString(request.version());
+      // turn HTTP/1.1 into HTTP_1_1 and HTTP/2 into HTTP_2
+      builder.version(Version.valueOf(versionString.replaceAll("\\W", "_")));
+    }
     for (var header : request.headers()) {
       builder.header(
           templateResolver.toString(header.name()),

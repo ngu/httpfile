@@ -231,7 +231,7 @@ public interface HttpFile {
    * A request.
    */
   public record Request(List<Property> requestProperties, HttpMethod method, StringTemplate target,
-      String version, List<Header> headers, Body body) {
+      StringTemplate version, List<Header> headers, Body body) {
     
     /**
      * Convenience constructor for a request with a name property.
