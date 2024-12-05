@@ -1,5 +1,8 @@
 package no.ngu.httpfile;
 
+/**
+ * The supported macros in the form of {{$macroName [arg1 arg2 ...]}}.
+ */
 public enum Macro {
   // {{$guid}}
   guid(0),
@@ -19,13 +22,21 @@ public enum Macro {
   // NYI
   ;
 
+  /**
+   * The minimum number of arguments for the macro.
+   */
   public final int minArgs;
+
+  /**
+   * The maximum number of arguments for the macro.
+   */
   public final int maxArgs;
 
   private Macro(int minArgs, int maxArgs) {
     this.minArgs = minArgs;
     this.maxArgs = maxArgs;
   }
+  
   private Macro(int numArgs) {
     this(numArgs, numArgs);
   }

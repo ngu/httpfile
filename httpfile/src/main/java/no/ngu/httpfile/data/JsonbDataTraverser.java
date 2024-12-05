@@ -8,6 +8,9 @@ import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 
+/**
+ * {@link DataTraverser} implementation for traversing Jsonb data.
+ */
 public class JsonbDataTraverser implements DataTraverser {
 
   private Jsonb jsonb = null;
@@ -32,7 +35,8 @@ public class JsonbDataTraverser implements DataTraverser {
   public Object traverse(Object data, String step) throws IllegalArgumentException {
     return switch (data) {
       case JsonObject jsonObject -> jsonObject.get(step);
-      case JsonArray jsonArray -> jsonArray.get(DataTraverser.checkIndexStep(step, jsonArray.size()));
+      case JsonArray jsonArray ->
+          jsonArray.get(DataTraverser.checkIndexStep(step, jsonArray.size()));
       case String string -> switch (step) {
         case "json", "$" -> getJsonb().fromJson(string, JsonValue.class);
         default -> DataTraverser.throwIllegalStep(data, step);

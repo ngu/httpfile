@@ -8,6 +8,9 @@ import no.ngu.httpfile.HttpFileParser;
 import no.ngu.httpfile.data.DataTraverser;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test for {@link HttpFileClient}.
+ */
 public class HttpFileClientTest {
 
   @Test
@@ -18,10 +21,11 @@ public class HttpFileClientTest {
       var requests = parser.parse(content);
       try (var testClient = new HttpFileClient()) {
         var result = testClient.performRequests(requests);
-        var traversed = DataTraverser.traversePath(result, "test2.response.body.$.data", testClient.dataTraversers);
+        var traversed = DataTraverser.traversePath(result, "test2.response.body.$.data",
+            testClient.dataTraversers);
         assertEquals(
-          Json.createValue("hello"),
-          traversed
+            Json.createValue("hello"),
+            traversed
         );
       } catch (Exception ioe) {
         fail(ioe.getMessage());

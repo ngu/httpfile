@@ -4,11 +4,15 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+/**
+ * {@link DataTraverser} implementation for traversing HTTP requests, headers and responses.
+ */
 public class HttpDataTraverser implements DataTraverser {
 
   @Override
   public boolean traverses(Object data, String step) {
-    return data instanceof HttpRequest || data instanceof HttpResponse || data instanceof HttpHeaders;
+    return data instanceof HttpRequest || data instanceof HttpResponse
+        || data instanceof HttpHeaders;
   }
 
   @Override

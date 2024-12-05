@@ -1,5 +1,9 @@
 package no.ngu.httpfile.data;
 
+/**
+ * Interface for traversing data structures.
+ * Also supports converting data to strings, integers, doubles and booleans.
+ */
 public interface DataTraverser {
 
   /**
@@ -28,7 +32,8 @@ public interface DataTraverser {
    * @param traversers the traversers to select among
    * @return the first traverser for the data, or null if none
    */
-  public static DataTraverser traverserFor(Object data, String step, Iterable<DataTraverser> traversers) {
+  public static DataTraverser traverserFor(Object data, String step,
+      Iterable<DataTraverser> traversers) {
     for (var traverser : traversers) {
       if (traverser.traverses(data, step)) {
         return traverser;
@@ -46,7 +51,8 @@ public interface DataTraverser {
    * @throws IllegalArgumentException since the step is illegal
    */
   public static <T> T throwIllegalStep(Object data, String step) throws IllegalArgumentException {
-    throw new IllegalArgumentException("Step " + step + " is illegal for data of " + data.getClass());
+    throw new IllegalArgumentException("Step " + step + " is illegal for data of "
+        + data.getClass());
   }
 
   /**
@@ -88,11 +94,12 @@ public interface DataTraverser {
    * @param traversers the traversers to select among
    * @return the data after traversing the path
    */
-  public static Object traversePath(Object data, String path, Iterable<DataTraverser> traversers) {
+  public static Object traversePath(Object data, String path,
+      Iterable<DataTraverser> traversers) {
     int pos = 0;
     while (pos < path.length()) {
       if (data == null) {
-        throw new NullPointerException("Nothing to traverse for (rest of) path: " + path.substring(pos));
+        throw new NullPointerException("Nothing to traverse for path: " + path.substring(pos));
       }
       int dotPos = path.indexOf('.', pos);
       if (dotPos < 0) {
@@ -113,11 +120,10 @@ public interface DataTraverser {
   }
 
   /**
-   * Tells whether this traverser can traverse the data.
+   * Tells whether this converter can traverse the data.
    *
    * @param data the data to test
-   * @param step the step to take
-   * @return true if this traverser can traverse the data, otherwise false
+   * @return true if this converter can convert the data, otherwise false
    */
   public default boolean converts(Object data) {
     return data instanceof String || data instanceof Number || data instanceof Boolean;
@@ -127,7 +133,7 @@ public interface DataTraverser {
    * Helper method to find the correct converter for the data.
    *
    * @param data the data to find converter for
-   * @param dataTraversers the converters to select among
+   * @param converters the converters to select among
    * @return the first converter for the data, or null if none
    */
   public static DataTraverser converterFor(Object data, Iterable<DataTraverser> converters) {

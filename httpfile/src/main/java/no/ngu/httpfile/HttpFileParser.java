@@ -15,9 +15,12 @@ import no.ngu.httpfile.HttpFileParser.Token.HeaderLine;
 import no.ngu.httpfile.HttpFileParser.Token.PropertyLine;
 import no.ngu.httpfile.HttpFileParser.Token.RequestLine;
 
+/**
+ * Parses an http file into a {@link Model}.
+ */
 public class HttpFileParser {
 
-  public sealed interface Token {
+  sealed interface Token {
 
     static boolean matchesEnd(String line) {
       return line == null;
@@ -271,9 +274,10 @@ public class HttpFileParser {
           }
           builder.acceptRequest();
           return new Next(null, new RequestSeparator(true));
-        } else if (Token.matchesRequestSeparator(line) && allParts.isEmpty() && bodyLines.isEmpty()) {
-            builder.acceptRequest();
-            return new Next(line, new RequestSeparator(true));
+        } else if (Token.matchesRequestSeparator(line) && allParts.isEmpty()
+            && bodyLines.isEmpty()) {
+          builder.acceptRequest();
+          return new Next(line, new RequestSeparator(true));
         } else if (Token.ResourceRefLine.matches(line)) {
           consumeBodyLines();
           allParts.add(new Part.ResourceRef(Token.ResourceRefLine.of(line).path()));
@@ -289,6 +293,12 @@ public class HttpFileParser {
     }
   }
 
+  /**
+   * Parses the given lines into a {@link Model}.
+   *
+   * @param lines the lines to parse
+   * @return the resulting model
+   */
   public Model parse(Iterator<String> lines) {
     Builder builder = new Builder();
     Next next = new Next(null, new State.RequestOrSeparator());
@@ -297,7 +307,7 @@ public class HttpFileParser {
       if (line == null && lines.hasNext()) {
         line = lines.next();
       }
-      System.out.println(next + ": " + line);
+      // System.out.println(next + ": " + line);
       next = next.state().next(line, builder);
       if (next == null) {
         break;
@@ -306,6 +316,12 @@ public class HttpFileParser {
     return new Model(builder.fileVariables, builder.requests);
   }
 
+  /**
+   * Parses the given input into a {@link Model}.
+   *
+   * @param input the input to parse
+   * @return the resulting model
+   */
   public Model parse(String input) {
     return parse(List.of(input.split("\n")).iterator());
   }
@@ -326,6 +342,11 @@ public class HttpFileParser {
 
       """;
 
+  /**
+   * Main method for testing.
+   *
+   * @param args the command line arguments
+   */
   public static void main(String[] args) {
     HttpFileParser parser = new HttpFileParser();
     System.out.println(parser.parse(List.of(sample.split("\n")).iterator()));

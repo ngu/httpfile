@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link DataTraverser} implementation for traversing maps, collections and arrays.
+ */
 public class CollectionDataTraverser implements DataTraverser {
 
   @Override

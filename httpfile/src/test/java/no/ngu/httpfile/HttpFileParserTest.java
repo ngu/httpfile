@@ -7,10 +7,16 @@ import no.ngu.httpfile.HttpFile.StringTemplate.Part;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test for {@link HttpFileParser}.
+ */
 public class HttpFileParserTest {
 
   private HttpFileParser parser;
 
+  /**
+   * Sets up the parser.
+   */
   @BeforeEach
   public void setupParser() {
     this.parser = new HttpFileParser();

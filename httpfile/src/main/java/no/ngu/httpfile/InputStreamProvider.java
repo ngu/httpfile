@@ -7,12 +7,31 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 
+/**
+ * Provides input streams for resources.
+ */
 public interface InputStreamProvider {
 
+  /**
+   * Gets an input stream for the given resource.
+   *
+   * @param resource the resource
+   * @return the input stream, or null if not found
+   */
   public InputStream getInputStream(String resource);
 
+  /**
+   * Provides input streams for URIs.
+   */
   public record Uri(URI baseUri) implements InputStreamProvider {
 
+    /**
+     * Gets an input stream for the given resource.
+     *
+     * @param baseUri the base URI
+     * @param resource the resource
+     * @return the input stream, or null if not found
+     */
     public static InputStream getInputStream(URI baseUri, String resource) {
       try {
         return (baseUri != null ? baseUri.resolve(resource) : URI.create(resource)).toURL()
@@ -28,8 +47,18 @@ public interface InputStreamProvider {
     }
   }
 
+  /**
+   * Provides input streams for resources in the classpath.
+   */
   public record Resource(Class<?> context) implements InputStreamProvider {
 
+    /**
+     * Gets an input stream for the given resource.
+     *
+     * @param context the class context
+     * @param resource the resource
+     * @return the input stream, or null if not found
+     */
     public static InputStream getInputStream(Class<?> context, String resource) {
       return context.getResourceAsStream(resource);
     }
@@ -40,15 +69,21 @@ public interface InputStreamProvider {
     }
   }
 
+  /**
+   * Provides input streams for files.
+   */
   public record File(Path basePath) implements InputStreamProvider {
 
-    public File(String basePath) {
-      this(Path.of(basePath));
-    }
-
-    public static InputStream getInputStream(Path basePath, String resource) {
+    /**
+     * Gets an input stream for the given file.
+     *
+     * @param basePath the base path
+     * @param file the file
+     * @return the input stream, or null if not found
+     */
+    public static InputStream getInputStream(Path basePath, String file) {
       try {
-        return new FileInputStream(basePath.resolve(resource).toFile());
+        return new FileInputStream(basePath.resolve(file).toFile());
       } catch (IOException ex) {
         return null;
       }
@@ -64,6 +99,10 @@ public interface InputStreamProvider {
     }
   }
 
+  /**
+   * The default input stream provider,
+   * supporting URIs, classpath resources, and files.
+   */
   public class Default implements InputStreamProvider {
 
     @Override

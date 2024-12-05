@@ -7,11 +7,17 @@ import no.ngu.httpfile.HttpFile.StringTemplate.Part;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test for {@link StringTemplateResolver}.
+ */
 public class StringTemplateResolverTest {
 
   private HttpFileParser parser;
   private InputStreamProvider inputStreamProvider;
 
+  /**
+   * Sets up the parser and input stream provider.
+   */
   @BeforeEach
   public void setupParser() {
     this.parser = new HttpFileParser();

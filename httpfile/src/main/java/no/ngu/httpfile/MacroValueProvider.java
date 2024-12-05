@@ -12,12 +12,20 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.function.Function;
 
+/**
+ * Provides values for macros in the form of {{$macroName [arg1 arg2 ...]}}.
+ */
 public class MacroValueProvider {
 
   private InputStreamProvider inputStreamProvider;
 
   private Properties envProps = null;
 
+  /**
+   * Initializes with the given InputStreamProvider.
+   *
+   * @param inputStreamProvider the InputStreamProvider
+   */
   public MacroValueProvider(InputStreamProvider inputStreamProvider) {
     this.inputStreamProvider = inputStreamProvider;
   }
@@ -34,10 +42,24 @@ public class MacroValueProvider {
     return envProps;
   }
 
+  /**
+   * Applies the given macro with the given arguments.
+   *
+   * @param macro the macro
+   * @param args the arguments
+   * @return the value of the macro application
+   */
   public String applyMacro(Macro macro, String... args) {
     return applyMacro(macro, List.of(args));
   }
 
+  /**
+   * Applies the given macro with the given arguments.
+   *
+   * @param macro the macro
+   * @param args the arguments
+   * @return the value of the macro application
+   */
   public String applyMacro(Macro macro, List<String> args) {
     return switch (macro) {
       // {{$guid}}
@@ -58,7 +80,8 @@ public class MacroValueProvider {
       }
       // {{$datetime rfc1123|iso8601 [offset option]}}
       case datetime -> {
-        DateTimeFormatter formatter = getDateTimeFormatter(arg(0, args), DateTimeFormatter.ISO_DATE_TIME);
+        DateTimeFormatter formatter = getDateTimeFormatter(arg(0, args),
+            DateTimeFormatter.ISO_DATE_TIME);
         int offset = arg(1, args, Integer::parseInt, 0);
         TemporalUnit unit = getTemporalUnit(arg(2, args, "s"));
         var datetime = ZonedDateTime.now().plus(offset, unit);
@@ -66,7 +89,8 @@ public class MacroValueProvider {
       }
       // {{$localDatetime rfc1123|iso8601 [offset option]}}
       case localDatetime -> {
-        DateTimeFormatter formatter = getDateTimeFormatter(arg(0, args), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        DateTimeFormatter formatter = getDateTimeFormatter(arg(0, args),
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         int offset = arg(1, args, Integer::parseInt, 0);
         TemporalUnit unit = getTemporalUnit(arg(2, args, "s"));
         var datetime = LocalDateTime.now().plus(offset, unit);
@@ -95,6 +119,7 @@ public class MacroValueProvider {
   private static String arg(int n, List<String> args, String def) {
     return args.size() > n ? args.get(n) : def;
   }
+
   private static String arg(int n, List<String> args) {
     return arg(n, args, null);
   }
@@ -103,7 +128,8 @@ public class MacroValueProvider {
     return args.size() > n ? mapper.apply(args.get(n)) : def;
   }
 
-  private static DateTimeFormatter getDateTimeFormatter(String format, DateTimeFormatter isoFormatter) {
+  private static DateTimeFormatter getDateTimeFormatter(String format,
+      DateTimeFormatter isoFormatter) {
     return switch (format) {
       case null -> isoFormatter;
       case "rfc1123" -> DateTimeFormatter.RFC_1123_DATE_TIME;

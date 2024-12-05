@@ -10,8 +10,9 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import no.ngu.httpfile.HttpFile;
-import no.ngu.httpfile.HttpFileParser;
 import no.ngu.httpfile.InputStreamProvider;
 import no.ngu.httpfile.StringTemplateResolver;
 import no.ngu.httpfile.StringValueProvider;
@@ -20,15 +21,27 @@ import no.ngu.httpfile.data.DataTraverser;
 import no.ngu.httpfile.data.HttpDataTraverser;
 import no.ngu.httpfile.data.JsonbDataTraverser;
 
+/**
+ * A client for performing HTTP requests as specified in an {@link HttpFile.Model}.
+ */
 public class HttpFileClient implements AutoCloseable {
 
   private InputStreamProvider inputStreamProvider;
   private HttpClient httpClient;
 
-  public HttpFileClient() {
-    this.inputStreamProvider = new InputStreamProvider.Default();
+  /**
+   * Initializes with the provided {@link InputStreamProvider}.
+   */
+  public HttpFileClient(InputStreamProvider inputStreamProvider) {
     var builder = HttpClient.newBuilder();
     this.httpClient = builder.build();
+  }
+
+  /**
+   * Initializes with the default {@link InputStreamProvider}.
+   */
+  public HttpFileClient() {
+    this(new InputStreamProvider.Default());
   }
 
   @Override
@@ -42,13 +55,28 @@ public class HttpFileClient implements AutoCloseable {
     }
   }
 
+  /**
+   * The data traversers used by this client.
+   */
   public final Iterable<DataTraverser> dataTraversers = List.of(
       new CollectionDataTraverser(),
       new JsonbDataTraverser(),
       new HttpDataTraverser()
   );
 
-  public Map<String, Object> performRequests(HttpFile.Model model, List<String> requestNames) {
+  /**
+   * Performs the requests in the provided {@link HttpFile.Model}.
+   *
+   * @param model the model containing the requests to perform
+   * @param requestTransform a function returning the actual request to perform, or null to skip
+   * @param resultConsumer a consumer for processing or valildating the result after each request
+   * @return a map of the results, with the request name as key
+   */
+  public Map<String, Object> performRequests(
+      HttpFile.Model model,
+      BiFunction<HttpFile.Request, String, HttpFile.Request> requestTransform,
+      BiConsumer<HttpFile.Request, Map<String, Object>> resultConsumer
+  ) {
     Map<String, Object> results = new HashMap<>();
     var stringTemplateResolver = new StringTemplateResolver();
     stringTemplateResolver.setInputStreamProvider(inputStreamProvider);
@@ -61,16 +89,25 @@ public class HttpFileClient implements AutoCloseable {
       stringTemplateResolver.setStringValueProvider(stringValueProvider);
       try {
         var requestName = request.getRequestPropertyValue("name");
-        if (requestNames == null || requestNames.isEmpty() || requestNames.contains(requestName.orElse(null))) {
-          var result = performRequest(request, stringTemplateResolver);
+        var actualRequest = request;
+        try {
+          actualRequest = requestTransform.apply(request, requestName.orElse(null));
+        } catch (Exception ex) {
+          break;
+        }
+        if (actualRequest != null) {
+          var result = performRequest(actualRequest, stringTemplateResolver);
           if (requestName.isPresent()) {
             results.put(requestName.get(), result);
           }
+          if (resultConsumer != null) {
+            resultConsumer.accept(actualRequest, result);
+          }
         }
-        System.err.println("Results, after performing %s %s: %s"
+        System.err.println("Results, after performing\n%s %s:\n%s"
             .formatted(request.method(), request.target(), results));
       } catch (Exception ex) {
-        System.err.println("Aborting, due to exception when performing %s %s"
+        System.err.println("Aborting, due to exception when performing\n%s %s"
             .formatted(request.method(), request.target()));
         break;
       }
@@ -78,8 +115,35 @@ public class HttpFileClient implements AutoCloseable {
     return results;
   }
 
+  /**
+   * Performs the requests in the provided {@link HttpFile.Model}.
+   *
+   * @param model the model containing the requests to perform
+   * @param requestNames the names of the requests to perform, or empty to perform all
+   * @param resultConsumer a consumer for processing or valildating the result after each request
+   * @return a map of the results, with the request name as key
+   */
+  public Map<String, Object> performRequests(
+      HttpFile.Model model,
+      List<String> requestNames,
+      BiConsumer<HttpFile.Request, Map<String, Object>> resultConsumer
+  ) {
+    return performRequests(
+        model,
+        (request, name) -> requestNames.isEmpty() || requestNames.contains(name) ? request : null,
+        resultConsumer
+    );
+  }
+
+  /**
+   * Performs the requests in the provided {@link HttpFile.Model}.
+   *
+   * @param model the model containing the requests to perform
+   * @param requestNames the names of the requests to perform, or empty to perform all
+   * @return a map of the results, with the request name as key
+   */
   public Map<String, Object> performRequests(HttpFile.Model model, String... requestNames) {
-    return performRequests(model, List.of(requestNames));
+    return performRequests(model, List.of(requestNames), null);
   }
 
   private Map<String, Object> performRequest(HttpFile.Request request,
@@ -97,24 +161,6 @@ public class HttpFileClient implements AutoCloseable {
       return Map.of("request", httpRequest, "response", httpResponse);
     } catch (IOException | InterruptedException ex) {
       throw new RuntimeException(ex);
-    }
-  }
-
-  private static String sample = """
-      @host=www.vg.no
-      GET https://{{host}}/
-      Accept: text/html
-
-      """;
-
-  public static void main(String[] args) {
-    HttpFileParser parser = new HttpFileParser();
-    var httpFile = parser.parse(List.of(sample.split("\n")).iterator());
-    try (var testClient = new HttpFileClient()) {
-      System.out.println(httpFile.fileVariables());
-      testClient.performRequests(httpFile);
-    } catch (Exception ioe) {
-      System.err.println(ioe);
     }
   }
 }
