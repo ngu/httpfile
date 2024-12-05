@@ -107,8 +107,8 @@ public class HttpFileClient implements AutoCloseable {
         System.err.println("Results, after performing\n%s %s:\n%s"
             .formatted(request.method(), request.target(), results));
       } catch (Exception ex) {
-        System.err.println("Aborting, due to exception when performing\n%s %s"
-            .formatted(request.method(), request.target()));
+        System.err.println("Aborting, due to exception when performing\n%s %s:\n%s"
+            .formatted(request.method(), request.target(), ex));
         break;
       }
     }
@@ -152,8 +152,10 @@ public class HttpFileClient implements AutoCloseable {
     for (var header : request.headers()) {
       builder.header(header.name(), templateResolver.toString(header.value()));
     }
-    builder.method(request.method().name(),
-        BodyPublishers.ofString(templateResolver.toString(request.body().content())));
+    var bodyContent = (request.body() != null
+        ? templateResolver.toString(request.body().content())
+        : "");
+    builder.method(request.method().name(), BodyPublishers.ofString(bodyContent));
     var httpRequest = builder.build();
 
     try {

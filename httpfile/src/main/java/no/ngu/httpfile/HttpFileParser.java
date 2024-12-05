@@ -1,5 +1,7 @@
 package no.ngu.httpfile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -200,7 +202,7 @@ public class HttpFileParser {
       @Override
       public Next next(String line, Builder builder) {
         if (Token.matchesBlank(line)) {
-          return new Next(null, new RequestLine());
+          return new Next(null, this);
         } else if (Token.PropertyLine.matches(line)) {
           properties.add(Token.PropertyLine.of(line));
           return new Next(null, this);
@@ -326,19 +328,21 @@ public class HttpFileParser {
     return parse(List.of(input.split("\n")).iterator());
   }
 
-  private static String sample = """
-      @host=localhost:8080
-      @json=application/json
-      @myname=Hallvard
-      # @name post
-      POST http://{{host}}/
-      Content-Type: {{json}};
-          encoding=utf-8
-      Accept: {{json}}
+  /**
+   * Parses the given input into a {@link Model}.
+   *
+   * @param input the input to parse
+   * @return the resulting model
+   */
+  public Model parse(InputStream input) throws IOException {
+    return parse(new String(input.readAllBytes()));
+  }
 
-      {
-          "name": "{{myname}}"
-      }
+  private static String sample = """
+      @baseUrl = https://httpbin.org/post
+
+      POST {{baseUrl}}?q=hello
+      Accept: application/json
 
       """;
 
