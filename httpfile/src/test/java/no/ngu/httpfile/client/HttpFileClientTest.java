@@ -16,7 +16,7 @@ public class HttpFileClientTest {
   @Test
   public void testParseTest1Http() {
     HttpFileParser parser = new HttpFileParser();
-    try (var input = this.getClass().getResourceAsStream("/test1.http")) {
+    try (var input = this.getClass().getResourceAsStream("/client-test1.http")) {
       String content = new String(input.readAllBytes());
       var requests = parser.parse(content);
       try (var testClient = new HttpFileClient()) {

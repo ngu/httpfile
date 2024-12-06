@@ -3,10 +3,10 @@ package no.ngu.httpfile.client;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
-import java.net.http.HttpClient.Version;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.HashMap;
 import java.util.List;
@@ -173,5 +173,16 @@ public class HttpFileClient implements AutoCloseable {
     } catch (IOException | InterruptedException ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  /**
+   * Traverses the provided data using the client's data traversers.
+   *
+   * @param data the data to traverse
+   * @param path the path to traverse
+   * @return the result of the traversal
+   */
+  public Object traversePath(Object data, String path) {
+    return DataTraverser.traversePath(data, path, dataTraversers);
   }
 }

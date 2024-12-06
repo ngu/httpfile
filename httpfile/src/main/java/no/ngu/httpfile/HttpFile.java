@@ -107,6 +107,9 @@ public interface HttpFile {
      * @return the resulting StringTemplate
      */
     public static StringTemplate of(String s) {
+      if (s == null) {
+        return null;
+      }
       List<Part> parts = new ArrayList<>();
       int pos = 0;
       while (pos < s.length()) {
