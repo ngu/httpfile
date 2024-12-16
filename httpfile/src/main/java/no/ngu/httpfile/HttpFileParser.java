@@ -220,6 +220,8 @@ public class HttpFileParser {
           builder.fileVariables.add(
               new Variable(variableLine.name(), HttpFile.StringTemplate.of(variableLine.value())));
           return new Next(null, this);
+        } else if (Token.matchesComment(line)) {
+          return new Next(null, this);
         }
         builder.properties = properties.stream()
             .map(propLine -> new HttpFile.Property(propLine.name(), propLine.value())).toList();

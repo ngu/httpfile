@@ -50,7 +50,16 @@ public interface InputStreamProvider {
   /**
    * Provides input streams for resources in the classpath.
    */
-  public record Resource(Class<?> context) implements InputStreamProvider {
+  public record Resource(Class<?> context, String basePath) implements InputStreamProvider {
+
+    /**
+     * Convenience constructor for resources in the classpath.
+     *
+     * @param context the class context
+     */
+    public Resource(Class<?> context) {
+      this(context, null);
+    }
 
     /**
      * Gets an input stream for the given resource.
@@ -59,13 +68,16 @@ public interface InputStreamProvider {
      * @param resource the resource
      * @return the input stream, or null if not found
      */
-    public static InputStream getInputStream(Class<?> context, String resource) {
+    public static InputStream getInputStream(Class<?> context, String basePath, String resource) {
+      if (basePath != null) {
+        resource = Path.of(basePath).resolve(resource).toString();
+      }
       return context.getResourceAsStream(resource);
     }
 
     @Override
     public InputStream getInputStream(String resource) {
-      return getInputStream(context, resource);
+      return getInputStream(context, basePath, resource);
     }
   }
 
@@ -110,7 +122,7 @@ public interface InputStreamProvider {
       if (resource.indexOf(':') >= 4) {
         return Uri.getInputStream(null, resource);
       } else if (resource.startsWith("/")) {
-        return Resource.getInputStream(getClass(), resource);
+        return Resource.getInputStream(getClass(), null, resource);
       } else {
         return File.getInputStream(Path.of("./"), resource);
       }

@@ -34,6 +34,7 @@ public class HttpFileClient implements AutoCloseable {
    * Initializes with the provided {@link InputStreamProvider}.
    */
   public HttpFileClient(InputStreamProvider inputStreamProvider) {
+    this.inputStreamProvider = inputStreamProvider;
     var builder = HttpClient.newBuilder();
     this.httpClient = builder.build();
   }
@@ -106,7 +107,7 @@ public class HttpFileClient implements AutoCloseable {
           }
         }
         System.err.println("Results, after performing\n%s %s:\n%s"
-            .formatted(request.method(), request.target(), results));
+            .formatted(request.method(), stringTemplateResolver.toString(request.target()), results));
       } catch (Exception ex) {
         System.err.println("Aborting, due to exception when performing\n%s %s:\n%s"
             .formatted(request.method(), request.target(), ex));

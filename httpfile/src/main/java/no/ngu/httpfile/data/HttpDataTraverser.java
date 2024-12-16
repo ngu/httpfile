@@ -1,5 +1,6 @@
 package no.ngu.httpfile.data;
 
+import jakarta.json.JsonValue;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -12,7 +13,8 @@ public class HttpDataTraverser implements DataTraverser {
   @Override
   public boolean traverses(Object data, String step) {
     return data instanceof HttpRequest || data instanceof HttpResponse
-        || data instanceof HttpHeaders;
+        || data instanceof HttpHeaders
+        || (data instanceof String && step.equals("*"));
   }
 
   @Override
@@ -38,7 +40,11 @@ public class HttpDataTraverser implements DataTraverser {
         }
         yield values;
       }
+      case String string -> switch (step) {
+        case "*" -> string;
+        default -> DataTraverser.throwIllegalStep(data, step);
+      };
       default -> DataTraverser.throwIllegalStep(data, step);
-    };  
+    };
   }
 }
