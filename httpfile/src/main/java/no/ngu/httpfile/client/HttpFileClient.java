@@ -17,6 +17,7 @@ import no.ngu.httpfile.HttpFile;
 import no.ngu.httpfile.InputStreamProvider;
 import no.ngu.httpfile.StringTemplateResolver;
 import no.ngu.httpfile.StringValueProvider;
+import no.ngu.httpfile.StringValueProvider.Properties;
 import no.ngu.httpfile.data.CollectionDataTraverser;
 import no.ngu.httpfile.data.DataTraverser;
 import no.ngu.httpfile.data.HttpDataTraverser;
@@ -70,12 +71,14 @@ public class HttpFileClient implements AutoCloseable {
    * Performs the requests in the provided {@link HttpFile.Model}.
    *
    * @param model the model containing the requests to perform
+   * @param variableOverrides variable overrides
    * @param requestTransform a function returning the actual request to perform, or null to skip
    * @param resultConsumer a consumer for processing or valildating the result after each request
    * @return a map of the results, with the request name as key
    */
   public Map<String, Object> performRequests(
       HttpFile.Model model,
+      Properties variableOverrides,
       BiFunction<HttpFile.Request, String, HttpFile.Request> requestTransform,
       BiConsumer<HttpFile.Request, Map<String, Object>> resultConsumer
   ) {
@@ -85,8 +88,10 @@ public class HttpFileClient implements AutoCloseable {
     var fileVariableValuesProvider = new StringValueProvider.Variables(model.fileVariables(), 
         stringTemplateResolver);
     StringValueProvider stringValueProvider = new StringValueProvider.Providers(
+        variableOverrides,
         fileVariableValuesProvider,
-        new StringValueProvider.Traversable(results, dataTraversers));
+        new StringValueProvider.Traversable(results, dataTraversers)
+    );
     for (var request : model.requests()) {
       stringTemplateResolver.setStringValueProvider(stringValueProvider);
       try {
@@ -107,7 +112,8 @@ public class HttpFileClient implements AutoCloseable {
           }
         }
         System.err.println("Results, after performing\n%s %s:\n%s"
-            .formatted(request.method(), stringTemplateResolver.toString(request.target()), results));
+            .formatted(request.method(), stringTemplateResolver.toString(request.target()),
+                results));
       } catch (Exception ex) {
         System.err.println("Aborting, due to exception when performing\n%s %s:\n%s"
             .formatted(request.method(), request.target(), ex));
@@ -115,6 +121,48 @@ public class HttpFileClient implements AutoCloseable {
       }
     }
     return results;
+  }
+
+  /**
+   * Performs the requests in the provided {@link HttpFile.Model}.
+   *
+   * @param model the model containing the requests to perform
+   * @param variableOverrides variable overrides
+   * @param requestTransform a function returning the actual request to perform, or null to skip
+   * @param resultConsumer a consumer for processing or valildating the result after each request
+   * @return a map of the results, with the request name as key
+   */
+  public Map<String, Object> performRequests(
+      HttpFile.Model model,
+      Map<String, String> variableOverrides,
+      BiFunction<HttpFile.Request, String, HttpFile.Request> requestTransform,
+      BiConsumer<HttpFile.Request, Map<String, Object>> resultConsumer
+  ) {
+    return performRequests(model, StringValueProvider.Properties.of(variableOverrides),
+        requestTransform, resultConsumer);
+  }
+
+  /**
+   * Performs the requests in the provided {@link HttpFile.Model}.
+   *
+   * @param model the model containing the requests to perform
+   * @param variableOverrides variable overrides
+   * @param requestNames the names of the requests to perform, or empty to perform all
+   * @param resultConsumer a consumer for processing or valildating the result after each request
+   * @return a map of the results, with the request name as key
+   */
+  public Map<String, Object> performRequests(
+      HttpFile.Model model,
+      Map<String, String> variableOverrides,
+      List<String> requestNames,
+      BiConsumer<HttpFile.Request, Map<String, Object>> resultConsumer
+  ) {
+    return performRequests(
+        model,
+        variableOverrides,
+        (request, name) -> requestNames.isEmpty() || requestNames.contains(name) ? request : null,
+        resultConsumer
+    );
   }
 
   /**
@@ -132,6 +180,7 @@ public class HttpFileClient implements AutoCloseable {
   ) {
     return performRequests(
         model,
+        Map.of(),
         (request, name) -> requestNames.isEmpty() || requestNames.contains(name) ? request : null,
         resultConsumer
     );

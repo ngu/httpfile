@@ -3,6 +3,7 @@ package no.ngu.httpfile;
 import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import no.ngu.httpfile.HttpFile.Variable;
 import no.ngu.httpfile.data.DataTraverser;
 
@@ -77,6 +78,18 @@ public interface StringValueProvider {
         throw new IllegalArgumentException("Exception when loading properties from "
             + path + "; " + e, e);
       }
+    }
+
+    /**
+     * StringValueProvider for properties filled from Map.
+     *
+     * @param map the map
+     * @return the properties
+     */
+    public static Properties of(Map<String, String> map) {
+      var props = new java.util.Properties();
+      props.putAll(map);
+      return new Properties(props);
     }
 
     @Override
