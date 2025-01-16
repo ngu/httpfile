@@ -10,10 +10,14 @@
 
     <packaging>pom</packaging>
 
+    <properties>
+        <!-- enable reproducible build -->
+        <project.build.outputTimestamp>2023-01-01T00:00:00Z</project.build.outputTimestamp>
+    </properties>
+
     <modules>
         <module>httpfile</module>
     </modules>
-
 
     <build>
         <pluginManagement>
