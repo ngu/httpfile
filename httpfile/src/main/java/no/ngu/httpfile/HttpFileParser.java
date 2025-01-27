@@ -29,7 +29,7 @@ public class HttpFileParser {
     }
 
     static boolean matchesBlank(String line) {
-      return line.length() == 0;
+      return line.isBlank();
     }
 
     static boolean matchesRequestSeparator(String line) {
