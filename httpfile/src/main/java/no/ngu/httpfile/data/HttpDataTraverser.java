@@ -1,6 +1,5 @@
 package no.ngu.httpfile.data;
 
-import jakarta.json.JsonValue;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
